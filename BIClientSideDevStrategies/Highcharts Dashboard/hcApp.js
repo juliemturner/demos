@@ -318,7 +318,10 @@ DBD.DashboardModel = function () {
 
 DBD.Initialize = function () {
     DBD.Model = new DBD.DashboardModel();
-    var cookie = JSON.parse(localStorage.getItem("hcDemoBusinessUnit"))
+    var userBU = localStorage.getItem("hcDemoBusinessUnit")
+    var cookie;
+    if(userBU != undefined && userBU != "undefined")
+        cookie = JSON.parse(userBU);
     if (cookie != undefined) {
         $('#ddlBusinessUnit').val(cookie);
     }
