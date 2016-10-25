@@ -3,12 +3,11 @@ var RC = window.RC || {};
 RC.currentSite = window.location.protocol + "//" + window.location.host + _spPageContextInfo.webServerRelativeUrl;
 
 RC.init = function () {
-    var REQUESTS_LIST = "IT Requests";
     var requests = [];
 
     var loadRequests = function() {
         $.ajax({
-            url: RC.currentSite + "/_api/web/lists/getbytitle('" + REQUESTS_LIST + "')/items",
+            url: RC.currentSite + "/_api/web/lists/getbytitle('IT Requests')/items",
             method: "GET",
             headers: { "Accept": "application/json; odata=verbose" },
             success: loadRequestsSuccess,
