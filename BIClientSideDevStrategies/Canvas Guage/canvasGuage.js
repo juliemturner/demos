@@ -5,6 +5,7 @@ CG.currentSite = window.location.protocol + "//" + window.location.host + _spPag
 CG.canvasDemo = angular.module('CanvasDemo', []);
 
 CG.canvasDemo.controller('CDCtrl',['$scope', 'serviceCanvas', function CDCtrl($scope, serviceCanvas) {
+        //Scope variables
         $scope.MaxRequests = 500;
         $scope.Users = [];
         var requests = [];
@@ -13,8 +14,10 @@ CG.canvasDemo.controller('CDCtrl',['$scope', 'serviceCanvas', function CDCtrl($s
             return {ID: null, BusinessUnit: null, Category: null, Status: null, DueDate: null, Assigned: null, Username: null, UserId: null};
         };
 
+        //Call factory to make REST calls to get items from list
         serviceCanvas.getRequests().then(function successResponse (itResponse){
             var it = itResponse.data.d.results;
+            //Promise resolved, create array of requests
             for (var i = 0; i < it.length; i++) {
                 var item = itemObj();
                 item.ID = it[i].ID;
@@ -31,6 +34,7 @@ CG.canvasDemo.controller('CDCtrl',['$scope', 'serviceCanvas', function CDCtrl($s
                 requests.push(item);
             }
 
+            //Create users array with number of total request per user.
             for(var r = 0; r < requests.length; r++) {
                 var req = requests[r];
                 if (req.Assigned != null) {

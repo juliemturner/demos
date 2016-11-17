@@ -1,6 +1,7 @@
 ﻿'use strict';
 CG.canvasDemo.directive('userGuage', function () {
     return {
+        //Isolated scope
         scope: {
             username: '@firstname',
             value: '@currentvalue',
@@ -8,8 +9,11 @@ CG.canvasDemo.directive('userGuage', function () {
             image: '@userimage'
         },
         restrict: 'E',
+        //Template is simple canvas tag
         template: '<canvas class="userGuage" ng-style="{\'background-image\': image}" ></canvas><div class="userText"><span class="userName">{{username}}</span></div>',
         link: function link(scope, element, attrs) {
+            //Local variables
+            //Get context to canvas element
             var ctx = element[0].children[0].getContext("2d");
             var W = element[0].children[0].offsetWidth;
             var H = element[0].children[0].offsetHeight;
@@ -24,9 +28,11 @@ CG.canvasDemo.directive('userGuage', function () {
             var text;
             var animation_loop, redraw_loop;
 
+            //Set the width/height of the canvas element
             ctx.canvas.width = W;
             ctx.canvas.height = H;
             
+            //Initialize the canvas visualization
             function init() {
                 degrees = degrees < 1 ? 1 : degrees;
                 if (degrees > 0 && degrees < 120) {
@@ -94,6 +100,7 @@ CG.canvasDemo.directive('userGuage', function () {
                 ctx.drawImage(maskCanvas, 0, 0);
             }
 
+            //Function called when value of assignments change
             function draw(currentVal) {
                 if (typeof animation_loop != undefined) clearInterval(animation_loop);
                 new_degrees = Math.round(360 * (currentVal / scope.scale));
@@ -102,6 +109,7 @@ CG.canvasDemo.directive('userGuage', function () {
                 animation_loop = setInterval(animate_to, 1000 / difference);
             }
 
+            //Creates an animation so that the visualization 'draws' around users head
             function animate_to() {
                 if (degrees == new_degrees) {
                     clearInterval(animation_loop);
@@ -114,6 +122,7 @@ CG.canvasDemo.directive('userGuage', function () {
                 init();
             }
 
+            //Because of isolated scope, need to set up a watch for value changes
             scope.$watch('value', function (value) {
                 if (value != undefined && value != "") {
                     currentVal = Number(value);

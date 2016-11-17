@@ -1,15 +1,16 @@
 <!--Dependencies-->
-<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/knockout/3.4.0/knockout-min.js"></script>
-<script type="text/javascript" src="//code.highcharts.com/highcharts.js"></script>
-<script type="text/javascript" src="//code.highcharts.com/modules/funnel.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.0/knockout-min.js"></script>
+<script type="text/javascript" src="https://code.highcharts.com/highcharts.js"></script>
+<script type="text/javascript" src="https://code.highcharts.com/modules/funnel.js"></script>
 
 <!-- Add your CSS styles to the following file -->
-<link rel="Stylesheet" type="text/css" href="/sites/juliedemos/Style%20Library/Highcharts/DBDemoStyles.css" />
+<link rel="Stylesheet" type="text/css" href="/sites/juliedemos/Style%20Library/Highcharts/hcStyles.css" />
 
 <!-- Add your JavaScript to the following file -->
 <script type="text/javascript" src="/sites/juliedemos/Style%20Library/Highcharts/hcApp.js"></script>
 
+<!--Bind Knockout to DOM -->
 <script type="text/javascript">
     $(document).ready(function () {
         DBD.Initialize();
@@ -17,6 +18,7 @@
     });
 </script>
 
+<!-- DOM Snippet for dashboard -->
 <table >
     <tr id="Header">
         <td style="height: 30px; vertical-align: middle">

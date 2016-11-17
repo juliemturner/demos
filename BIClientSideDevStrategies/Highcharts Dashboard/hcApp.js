@@ -4,24 +4,55 @@ DBD.currentSite = window.location.protocol + "//" + window.location.host + _spPa
 DBD.Model;
 DBD.DashboardModel = function () {
     var self = this;
+    //Global variables
     var REFRESH_SECONDS = 0; // 60000; //1 Minute
     var BUSINESSUNIT_DEFAULT = "All";
     var REQUESTS_LIST = "IT Requests";
     var itemObj = function() {
             return {Id: null, Title: null, Type: null, Abstract: null, Body: null, Application: null, Author: null, Created: null, Modified: null, Favorite: false, More: null};
         };
-    var lastReload = ko.observable(new Date());
+
+    //Local variables
     var tics = new Date();
     var reloadHandle;
 
+    //Knockout observables
+    var lastReload = ko.observable(new Date());
     self.selectedBusinessUnit = ko.observable(BUSINESSUNIT_DEFAULT);
     self.businessunit = ko.observableArray([BUSINESSUNIT_DEFAULT]);
     self.requests = [];
 
+    //Displays last reload date/time.
     self.lastReloadLabel = ko.computed(function () {
         return "Last Reload: " + (lastReload().getMonth() + 1) + "/" + lastReload().getDate() + "/" + lastReload().getFullYear() + " " + lastReload().getHours() + ":" + (lastReload().getMinutes().toString().length < 2?"0"+lastReload().getMinutes():lastReload().getMinutes());
     });
 
+    //Helper function to check if business unit value has been loaded into array
+    function getValueAssigned(lookupArray, bu, assigned) {
+        var retVal = 0;
+        $.each(lookupArray, function () {
+            if (this.assigned == assigned && this.businessunit == bu) {
+                retVal = this.assignments;
+                return false;
+            }
+        });
+        return retVal;
+    }
+
+    //Helper function to check if category value has been loaded into array
+    function getValueCategory(lookupArray, bu, cat) {
+        var retVal = 0;
+        $.each(lookupArray, function () {
+            if (this.category == cat && this.businessunit == bu) {
+                retVal = this.requests;
+                return false;
+            }
+        });
+        return retVal;
+    }
+
+
+    //Makes REST call for list data
     var loadRequests = function() {
         $.ajax({
             url: DBD.currentSite + "/_api/web/lists/getbytitle('" + REQUESTS_LIST + "')/items?$top=5000&$select=ID,BusinessUnit,Category,Status,DueDate,AssignedTo/Title&$expand=AssignedTo/Title",
@@ -32,8 +63,11 @@ DBD.DashboardModel = function () {
         });
     };
 
+    //Function fun when data is sucessfully retrieved
     var loadRequestsSuccess = function (itResponse) {
+        //Update reload date, to trigger binding of label
         lastReload(new Date());
+        //Clean out requests array
         self.requests = [];
 
         var it = itResponse.d.results;
@@ -49,7 +83,7 @@ DBD.DashboardModel = function () {
                 item.Assigned = it[i].AssignedTo.Title.split(" ")[0];
             self.requests.push(item);
         }
-        
+        //Load and bind UI
         loadBusinessUnits();
         self.chartRequestsByAssignee();
         self.chartAvgRequestWeekday();
@@ -57,6 +91,7 @@ DBD.DashboardModel = function () {
         self.chartRequestStatusCount();
     };
 
+    //Extract a unique array of business units.
     var loadBusinessUnits = function () {
         self.businessunit.removeAll();
         var allBU = []
@@ -76,8 +111,10 @@ DBD.DashboardModel = function () {
         });
     };
 
+    //Manipulate data to get # of requests by assignee (Area Chart)
     self.chartRequestsByAssignee = function () {
         var assignedrequests = [];
+        //Looop through requests and create array of business units and assignees and number of requests.
         $.each(self.requests, function () {
             if (this.Assigned != null && (this.BusinessUnit == self.selectedBusinessUnit() || self.selectedBusinessUnit() == "All")) {
                 var i = -1;
@@ -130,21 +167,12 @@ DBD.DashboardModel = function () {
         });
     };
 
-    function getValueAssigned(lookupArray, bu, assigned) {
-        var retVal = 0;
-        $.each(lookupArray, function () {
-            if (this.assigned == assigned && this.businessunit == bu) {
-                retVal = this.assignments;
-                return false;
-            }
-        });
-        return retVal;
-    }
-
+    //Manipulate data to get average requests by weekday (Area Spline Chart)
     self.chartAvgRequestWeekday = function () {
         var weeks = ((self.requests[self.requests.length - 1].DueDate - self.requests[0].DueDate) / (1000 * 60 * 60 * 24 * 7)).toFixed(0);
         var dailyRequests = [];
 
+        //Loop through requests and create array of days of the week with # of requests per day
         $.each(self.requests, function () {
             if (this.BusinessUnit == self.selectedBusinessUnit() || self.selectedBusinessUnit() == "All") {
                 var i = -1;
@@ -185,8 +213,10 @@ DBD.DashboardModel = function () {
         });
     };
 
+    //Manipulate data to get # of requests by business unit (Bar Chart)
     self.chartRequestByBusinessUnit = function () {
         var catrequests = [];
+        //Loop through requests and create an array of business unit/category combinations and number of requests
         $.each(self.requests, function () {
             if (this.BusinessUnit == self.selectedBusinessUnit() || self.selectedBusinessUnit() == "All") {
                 var i = -1;
@@ -231,6 +261,7 @@ DBD.DashboardModel = function () {
             val.push(item);
         });
 
+        //Call highcharts, pass configuration and data values
         var Title = self.selectedBusinessUnit() == "All" ? "Requests by Business Unit" : "Requests by Business Unit for (" + self.selectedBusinessUnit() + ")";
         $('#RequestByBusinessUnit').highcharts({
             chart: { type: 'column', margin: [50, 50, 100, 80] },
@@ -244,19 +275,10 @@ DBD.DashboardModel = function () {
         });
     };
 
-    function getValueCategory(lookupArray, bu, cat) {
-        var retVal = 0;
-        $.each(lookupArray, function () {
-            if (this.category == cat && this.businessunit == bu) {
-                retVal = this.requests;
-                return false;
-            }
-        });
-        return retVal;
-    }
-
+    //Manipulate data to get # of requests per status. (Funnel Chart)
     self.chartRequestStatusCount = function () {
         var statusCount = [];
+        //Loop through requests, create array of each status and the # of assignments in that status
         $.each(self.requests, function () {
             if (this.BusinessUnit == self.selectedBusinessUnit() || self.selectedBusinessUnit() == "All") {
                 var i = -1;
@@ -281,6 +303,7 @@ DBD.DashboardModel = function () {
 
         var val = [{ name: 'Status Requests', data: dataArray }];
 
+        //Call highcharts, pass configuration and data values
         var Title = self.selectedBusinessUnit() == "All" ? "Request Status" : "Request Status for (" + self.selectedBusinessUnit() + ")";
         $('#RequestStatusCount').highcharts({
             chart: { type: 'funnel', marginRight: 100 },
@@ -291,10 +314,12 @@ DBD.DashboardModel = function () {
         });
     };
 
+    //REST call error handler
     var error = function (sender, args) {
         alert(args.get_message());
     };
 
+    //If user changes business unit, save cookie, filter data and rebind charts
     self.changeBusinessUnit = function () {
         localStorage.setItem("hcDemoBusinessUnit", JSON.stringify(self.selectedBusinessUnit()));
         self.chartRequestsByAssignee();
@@ -307,6 +332,7 @@ DBD.DashboardModel = function () {
         reloadHandle = setTimeout("location.reload(true);", t);
     };
 
+    //Initialize data, if refresh is set, create timer
     self.InitData = function () {
         loadRequests();
         if (REFRESH_SECONDS > 0) {
@@ -316,8 +342,10 @@ DBD.DashboardModel = function () {
     };
 };
 
+//Initialize funcion that sets up the data model and initalizes it
 DBD.Initialize = function () {
     DBD.Model = new DBD.DashboardModel();
+    //Get Business Unit 'cookie'
     var userBU = localStorage.getItem("hcDemoBusinessUnit")
     var cookie;
     if(userBU != undefined && userBU != "undefined")
